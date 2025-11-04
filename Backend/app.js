@@ -6,6 +6,7 @@ const nhaxuatbanRouter = require("./app/routes/nhaxuatban.route");
 const sachRouter = require("./app/routes/sach.route");
 const muonsachRouter = require("./app/routes/muonsach.route");
 const ApiError = require("./app/api-error");
+const authJwt = require("./app/middleware/auth.middleware");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -14,9 +15,21 @@ app.get("/", (req, res) => {
 });
 app.use("/api/nhanviens", nhanviensRouter);
 app.use("/api/docgias", docgiaRouter);
-app.use("/api/nhaxuatbans", nhaxuatbanRouter);
-app.use("/api/sachs", sachRouter);
-app.use("/api/muonsachs", muonsachRouter);
+app.use(
+  "/api/nhaxuatbans",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  nhaxuatbanRouter
+);
+app.use(
+    "/api/sachs", 
+    [authJwt.verifyToken, authJwt.isAdmin], 
+    sachRouter
+);
+app.use(
+    "/api/muonsachs", 
+    [authJwt.verifyToken, authJwt.isAdmin], 
+    muonsachRouter
+);
 app.use((req, res, next) => {
   return next(new ApiError(404, "Resource not found"));
 });
