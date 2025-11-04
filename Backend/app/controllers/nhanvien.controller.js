@@ -1,6 +1,9 @@
 const NhanVienService = require("../services/nhanvien.service");
 const MongoDB = require("../utils/mongodb.util");
 const ApiError = require("../api-error.js");
+const jwt = require("jsonwebtoken"); 
+const bcrypt = require("bcryptjs"); 
+const config = require("../config/index.js");
 
 exports.create = async (req, res, next) => {
     //Kiểm tra MSNV và Password
@@ -105,6 +108,42 @@ exports.deleteAll = async (_req, res, next) => {
         return next(
             new ApiError(500, "An error occurred while removing all employees")
         );
+    }
+};
+
+exports.login = async (req, res, next) => {
+    if (!req.body?.MSNV || !req.body?.Password) {
+        return next(new ApiError(400, "MSNV and Password are required"));
+    }
+    try {
+        const nhanVienService = new NhanVienService(MongoDB.client);
+        const user = await nhanVienService.findByMSNV(req.body.MSNV);
+        if (!user) {
+            return next(new ApiError(401, "Incorrect MSNV or Password"));
+        }
+        const passwordMatch = await bcrypt.compare(
+            req.body.Password,
+            user.Password 
+        );
+
+        if (!passwordMatch) {
+            return next(new ApiError(401, "Incorrect MSNV or Password"));
+        }
+        const token = jwt.sign(
+            { userId: user._id, msnv: user.MSNV, role: "nhanvien" }, 
+            config.jwt.secret, 
+            { expiresIn: "1h" } 
+        );
+        const { Password, ...userWithoutPassword } = user;
+        
+        return res.send({
+            message: "Login successful",
+            token: token,
+            user: userWithoutPassword
+        });
+
+    } catch (error) {
+        return next(new ApiError(500, "An error occurred during login"));
     }
 };
 
