@@ -26,16 +26,23 @@ exports.create = async (req, res, next) => {
 exports.findAll = async (req, res, next) => {
     let documents = [];
     try {
-        const sachService = new SachService(MongoDB.client); 
-        const { name } = req.query; 
-        if (name) {
-            documents = await sachService.findByTenSach(name); 
-        } else {
-            documents = await sachService.find({});
+        const sachService = new SachService(MongoDB.client);
+        const { searchText, TheLoai } = req.query; 
+        const filter = {};
+        if (TheLoai) {
+            filter.TheLoai = TheLoai; 
         }
+        if (searchText) {
+            filter.$or = [
+                { TenSach: { $regex: new RegExp(searchText), $options: "i" } },
+                { MaSach: { $regex: new RegExp(searchText), $options: "i" } }
+            ];
+        }
+        documents = await sachService.find(filter); 
+
     } catch (error) {
         return next(
-            new ApiError(500, "An error occurred while retrieving books") 
+            new ApiError(500, "An error occurred while retrieving books")
         );
     }
     return res.send(documents);
@@ -100,6 +107,17 @@ exports.deleteAll = async (_req, res, next) => {
     } catch (error) {
         return next(
             new ApiError(500, "An error occurred while removing all books") 
+        );
+    }
+};
+exports.findAllCategories = async (req, res, next) => {
+    try {
+        const sachService = new SachService(MongoDB.client);
+        const documents = await sachService.getCategories();
+        return res.send(documents);
+    } catch (error) {
+        return next(
+            new ApiError(500, "An error occurred while retrieving categories")
         );
     }
 };

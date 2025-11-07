@@ -1,19 +1,30 @@
 const MuonSachService = require("../services/muonsach.service"); 
 const MongoDB = require("../utils/mongodb.util");
 const ApiError = require("../api-error"); 
+const SachService = require("../services/sach.service");
 
 exports.create = async (req, res, next) => {
     if (!req.body?.MaDocGia || !req.body?.MaSach || !req.body?.NgayMuon) {
         return next(new ApiError(400, "MaDocGia, MaSach, NgayMuon can not be empty"));
     }
-
     try {
-        const muonSachService = new MuonSachService(MongoDB.client); 
+        const muonSachService = new MuonSachService(MongoDB.client);
+        const sachService = new SachService(MongoDB.client);
+        const book = await sachService.findByMaSach(req.body.MaSach);
+        if (!book) {
+            return next(new ApiError(404, "Sách không tồn tại."));
+        }
+        if (book.soQuyenHienCo <= 0) {
+            return next(new ApiError(400, "Sách đã hết, không thể mượn."));
+        }
         const document = await muonSachService.create(req.body);
+        if (document) {
+            await sachService.updateStockByMaSach(req.body.MaSach, -1);
+        }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An error occurred while creating the borrow record") 
+            new ApiError(500, "An error occurred while creating the borrow record")
         );
     }
 };
@@ -55,17 +66,24 @@ exports.update = async (req, res, next) => {
     if (!req.body?.NgayTra) {
         return next(new ApiError(400, "NgayTra to update can not be empty"));
     }
-
     try {
-        const muonSachService = new MuonSachService(MongoDB.client); 
-        const document = await muonSachService.update(req.params.id, req.body);
-        if (!document) {
-            return next(new ApiError(404, "Borrow record not found")); 
+        const muonSachService = new MuonSachService(MongoDB.client);
+        const sachService = new SachService(MongoDB.client);
+        const existingRecord = await muonSachService.findById(req.params.id);
+        if (!existingRecord) {
+            return next(new ApiError(404, "Phiếu mượn không tìm thấy."));
         }
-        return res.send({ message: "Borrow record was updated successfully" }); 
+        if (existingRecord.NgayTra) {
+            return next(new ApiError(400, "Sách này đã được trả trước đó."));
+        }
+        const document = await muonSachService.update(req.params.id, req.body);
+        if (document) {
+            await sachService.updateStockByMaSach(existingRecord.MaSach, +1);
+        }
+        return res.send({ message: "Borrow record was updated successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Error updating borrow record with id=${req.params.id}`) 
+            new ApiError(500, `Error updating borrow record with id=${req.params.id}`)
         );
     }
 };

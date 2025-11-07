@@ -14,6 +14,9 @@ class SachService {
             NamXuatBan: payload.NamXuatBan,
             MaNXB: payload.MaNXB,
             TacGia: payload.TacGia,
+            HinhAnh: payload.HinhAnh,
+            SoQuyenHienCo: payload.SoQuyenHienCo,
+            TheLoai: payload.TheLoai
         };
 
         Object.keys(sach).forEach(
@@ -24,6 +27,7 @@ class SachService {
 
     async create(payload) {
         const sach = this.extractSachData(payload);
+        sach.soQuyenHienCo = sach.SoQuyen;
         const result = await this.Sach.insertOne(sach);
         return await this.findById(result.insertedId);
     }
@@ -32,7 +36,17 @@ class SachService {
         const cursor = await this.Sach.find(filter);
         return await cursor.toArray();
     }
-
+    async findBySearch(searchText) {
+        const filter = {
+            $or: [
+                
+                { TenSach: { $regex: new RegExp(searchText), $options: "i" } },
+                { MaSach: { $regex: new RegExp(searchText), $options: "i" } }
+            ]
+        };
+        
+        return await this.find(filter); 
+    }
     async findByTenSach(name) {
         return await this.find({
             TenSach: { $regex: new RegExp(name), $options: "i" },
@@ -72,6 +86,26 @@ class SachService {
     async deleteAll() {
         const result = await this.Sach.deleteMany({});
         return result.deletedCount;
+    }
+
+    async updateStockByMaSach(maSach, change) {
+        const filter = { MaSach: maSach };
+        const update = { 
+            // $inc tăng/giảm gái trị của mongodb
+            $inc: { soQuyenHienCo: change } 
+        };
+        
+        const result = await this.Sach.findOneAndUpdate(
+            filter,
+            update,
+            { returnDocument: "after" }
+        );
+        return result.value;
+    }
+    async getCategories() {
+        // distinct() là để lấy giá trị unique của mongo
+        const categories = await this.Sach.distinct("TheLoai");
+        return categories.filter(c => c); //bỏ giá trị null/empty
     }
 }
 

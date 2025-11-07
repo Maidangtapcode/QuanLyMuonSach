@@ -7,7 +7,8 @@ router.route("/")
     .get(sach.findAll)   
     .post(sach.create)   
     .delete(sach.deleteAll);
-
+router.route("/categories")
+    .get(sach.findAllCategories);
 router.route("/:id")
     .get(sach.findOne)   
     .put(sach.update)    
