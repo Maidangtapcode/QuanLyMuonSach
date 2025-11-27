@@ -11,6 +11,11 @@ exports.create = async (req, res, next) => {
         const muonSachService = new MuonSachService(MongoDB.client);
         const sachService = new SachService(MongoDB.client);
         const book = await sachService.findByMaSach(req.body.MaSach);
+        const soSachDangMuon = await muonSachService.countActiveBorrowsByReader(req.body.MaDocGia);
+        // Nếu đã mượn từ 3 cuốn trở lên -> Chặn luôn
+        if (soSachDangMuon >= 3) {
+            return next(new ApiError(400, `Độc giả này đang mượn ${soSachDangMuon} cuốn. Quy định chỉ được mượn tối đa 3 cuốn!`));
+        }
         if (!book) {
             return next(new ApiError(404, "Sách không tồn tại."));
         }

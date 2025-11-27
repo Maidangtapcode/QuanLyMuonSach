@@ -18,24 +18,33 @@ function handleLogout() {
                 <i class="fa-solid fa-shield-halved me-2"></i>
                 Admin Panel
             </h4>
-            
+
             <ul class="nav nav-pills flex-column mb-auto">
-                <li class="nav-item">
+                <li class="nav-item mb-2">
+                    <RouterLink to="/admin" class="nav-link text-white" exact-active-class="active">
+                        <i class="fa-solid fa-chart-line me-2"></i> Tổng quan Thư viện
+                    </RouterLink>
+                </li>
+
+                <li class="nav-item mb-2">
                     <RouterLink to="/admin/books" class="nav-link text-white" active-class="active">
                         <i class="fa-solid fa-book me-2"></i> Quản lý Sách
                     </RouterLink>
                 </li>
-                <li class="nav-item">
+
+                <li class="nav-item mb-2">
                     <RouterLink to="/admin/users" class="nav-link text-white" active-class="active">
                         <i class="fa-solid fa-users me-2"></i> Quản lý Độc Giả
                     </RouterLink>
                 </li>
-                <li class="nav-item">
+
+                <li class="nav-item mb-2">
                     <RouterLink to="/admin/borrows" class="nav-link text-white" active-class="active">
                         <i class="fa-solid fa-right-left me-2"></i> Quản lý Mượn Sách
                     </RouterLink>
                 </li>
-                 <li class="nav-item">
+
+                <li class="nav-item mb-2">
                     <RouterLink to="/admin/publishers" class="nav-link text-white" active-class="active">
                         <i class="fa-solid fa-building me-2"></i> Quản lý NXB
                     </RouterLink>
@@ -59,7 +68,7 @@ function handleLogout() {
                     </span>
                 </div>
             </nav>
-            
+
             <div class="bg-white p-4 rounded shadow-sm">
                 <RouterView />
             </div>
@@ -86,6 +95,6 @@ function handleLogout() {
 }
 
 .nav-pills .nav-link.active {
-    background-color: #0d6efd; 
+    background-color: #0d6efd;
 }
 </style>
