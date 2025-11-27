@@ -20,7 +20,7 @@ async function fetchBooks() {
     }
     try {
         const response = await authApiService.get('/sachs', {
-            params: queryParams
+            params: queryParams 
         });
         books.value = response.data;
     } catch (err) {
