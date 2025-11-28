@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
 
 const authStore = useAuthStore();
-const maDocGia = ref(''); // Sửa tên biến
+const maDocGia = ref('');
 const password = ref('');
 const loginError = ref(false);
 const loading = ref(false);
@@ -11,10 +11,8 @@ const loading = ref(false);
 async function handleLogin() {
     loginError.value = false;
     loading.value = true;
-
-    // Chuẩn bị dữ liệu gửi lên API /docgias/login
     const credentials = {
-        MaDocGia: maDocGia.value, // Sửa key thành MaDocGia
+        MaDocGia: maDocGia.value,
         Password: password.value,
     };
 

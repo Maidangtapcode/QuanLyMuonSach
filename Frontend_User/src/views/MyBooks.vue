@@ -7,15 +7,12 @@ const authStore = useAuthStore();
 const borrows = ref([]);
 const books = ref([]);
 const loading = ref(true);
-const activeTab = ref('current'); // 'current' (đang mượn) hoặc 'history' (đã trả)
-
-// Tải dữ liệu
+const activeTab = ref('current'); 
 async function fetchData() {
     loading.value = true;
     try {
         const maDocGia = authStore.user.MaDocGia;
-
-        // Gọi song song: Lấy phiếu mượn của user VÀ danh sách sách
+        // Gọi song song
         const [borrowsRes, booksRes] = await Promise.all([
             apiService.get(`/muonsachs?maDocGia=${maDocGia}`),
             apiService.get('/sachs')
@@ -36,7 +33,7 @@ function getBookName(maSach) {
     return book ? book.TenSach : maSach;
 }
 
-// Hàm kiểm tra quá hạn (Logic y hệt bên Admin)
+// Hàm kiểm tra quá hạn
 function isOverdue(item) {
     if (item.NgayTra) return false;
     if (!item.HanTra) return false;
@@ -47,12 +44,12 @@ function isOverdue(item) {
     return today > dueDate;
 }
 
-// Lọc danh sách ĐANG MƯỢN
+// Lọc danh sách đang mượn
 const currentBorrows = computed(() => {
     return borrows.value.filter(item => !item.NgayTra);
 });
 
-// Lọc danh sách LỊCH SỬ (ĐÃ TRẢ)
+// Lọc danh sách lịch sử
 const historyBorrows = computed(() => {
     return borrows.value.filter(item => item.NgayTra);
 });

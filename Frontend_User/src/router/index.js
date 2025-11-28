@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth.store";
-
-// Import Views
 import LoginView from "../views/LoginView.vue";
 import MyBooks from "../views/MyBooks.vue";
 import BookLibrary from "../views/BookLibrary.vue"; 
@@ -15,7 +13,7 @@ const routes = [
     {
         path: "/",
         name: "library",
-        component: BookLibrary, // Trang chủ là trang Sách
+        component: BookLibrary, 
         meta: { requiresAuth: true }
     },
     {
@@ -24,7 +22,6 @@ const routes = [
         component: MyBooks,
         meta: { requiresAuth: true }
     },
-    // Trang 404 hoặc link sai về Home
     {
         path: "/:pathMatch(.*)*",
         redirect: "/",

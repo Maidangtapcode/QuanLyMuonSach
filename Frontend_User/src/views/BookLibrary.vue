@@ -1,8 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
-import { apiService } from '@/services/api.service'; // Dùng apiService đã cấu hình interceptor
-
+import { apiService } from '@/services/api.service'; 
 const authStore = useAuthStore();
 const books = ref([]);
 const categories = ref([]);
@@ -34,15 +33,15 @@ async function fetchData() {
     }
 }
 
-// Logic lọc sách (Client-side filtering cho mượt)
+// Logic lọc sách
 const filteredBooks = computed(() => {
     return books.value.filter(book => {
-        // 1. Lọc theo tên hoặc mã
+        // Lọc theo tên hoặc mã
         const matchSearch =
             book.TenSach.toLowerCase().includes(searchText.value.toLowerCase()) ||
             book.MaSach.toLowerCase().includes(searchText.value.toLowerCase());
 
-        // 2. Lọc theo thể loại
+        // Lọc theo thể loại
         const matchCategory = selectedCategory.value
             ? book.theLoai === selectedCategory.value
             : true;
@@ -51,32 +50,26 @@ const filteredBooks = computed(() => {
     });
 });
 
-// Hàm xử lý khi bấm "Mượn sách"
+// Hàm xử lý khi bấm mượn sách
 async function handleBorrow(book) {
     if (book.soQuyenHienCo <= 0) {
         alert("Sách này tạm thời đã hết!");
         return;
     }
-
     // Xác nhận
     if (!confirm(`Bạn muốn đăng ký mượn sách: "${book.TenSach}"?`)) return;
-
     try {
         // Lấy ngày hiện tại
         const today = new Date().toISOString().split('T')[0];
         const maDocGia = authStore.user.MaDocGia;
-
-        // Gọi API tạo phiếu (Mặc định TrangThai sẽ là 0)
+        // Gọi API tạo phiếu mượn
         await apiService.post('/muonsachs', {
             MaDocGia: maDocGia,
             MaSach: book.MaSach,
             NgayMuon: today
-            // Không gửi MSNV
         });
 
         alert("Đăng ký thành công! Vui lòng chờ thủ thư duyệt.");
-        
-        // Tải lại dữ liệu để cập nhật số lượng tồn kho
         await fetchData();
 
     } catch (err) {
@@ -85,7 +78,6 @@ async function handleBorrow(book) {
 }
 
 // Hàm đăng xuất
-
 function handleLogout() {
     if (confirm("Đăng xuất?")) authStore.logout();
 }
@@ -203,21 +195,16 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* CSS Tùy chỉnh để giao diện đẹp hơn */
-
 .hero-section {
-    /* Gradient nền đẹp mắt */
     background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
     border-bottom-left-radius: 2rem;
     border-bottom-right-radius: 2rem;
     padding-bottom: 4rem !important;
-    /* Dành chỗ cho thanh search nổi */
 }
 
 .search-box {
     max-width: 800px;
     margin-top: 1rem;
-    /* Hiệu ứng nổi lên trên nền */
     position: relative;
     top: 20px;
 }
@@ -234,7 +221,6 @@ onMounted(() => {
 
 .book-cover-wrapper {
     height: 250px;
-    /* Chiều cao cố định cho khung ảnh */
     overflow: hidden;
     background-color: #f8f9fa;
     display: flex;
@@ -246,7 +232,6 @@ onMounted(() => {
     height: 100%;
     width: 100%;
     object-fit: contain;
-    /* Giữ tỷ lệ ảnh, không bị méo */
     padding: 10px;
 }
 

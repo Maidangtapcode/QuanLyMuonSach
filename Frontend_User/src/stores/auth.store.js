@@ -9,7 +9,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     async function login(credentials) {
         try {
-            // 1. SỬA: Gọi API đăng nhập của ĐỘC GIẢ
             const response = await apiService.post('/docgias/login', credentials);
             const data = response.data;
 
@@ -18,10 +17,7 @@ export const useAuthStore = defineStore("auth", () => {
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
-
-            // 2. SỬA: Chuyển hướng về trang chủ (Home)
             router.push("/"); 
-
             return true;
         } catch (error) {
             console.error("Lỗi đăng nhập:", error.response?.data?.message || error.message);
@@ -36,6 +32,5 @@ export const useAuthStore = defineStore("auth", () => {
         localStorage.removeItem("user");
         router.push("/login");
     }
-
     return { token, user, login, logout };
 });
