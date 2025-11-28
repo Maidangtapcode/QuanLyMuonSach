@@ -17,17 +17,14 @@ app.use("/api/nhanviens", nhanviensRouter);
 app.use("/api/docgias", docgiaRouter);
 app.use(
   "/api/nhaxuatbans",
-  [authJwt.verifyToken, authJwt.isAdmin],
   nhaxuatbanRouter
 );
 app.use(
-    "/api/sachs", 
-    [authJwt.verifyToken, authJwt.isAdmin], 
+    "/api/sachs",  
     sachRouter
 );
 app.use(
     "/api/muonsachs", 
-    [authJwt.verifyToken, authJwt.isAdmin], 
     muonsachRouter
 );
 app.use((req, res, next) => {

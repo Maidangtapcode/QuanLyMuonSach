@@ -1,5 +1,4 @@
 import axios from "axios";
-
 const commonConfig = {
     baseURL: "http://localhost:3000/api", 
     headers: {

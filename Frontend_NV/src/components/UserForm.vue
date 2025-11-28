@@ -23,7 +23,7 @@ const user = ref({
 
 const loading = ref(false);
 
-// Tải thông tin độc giả (Chế độ Sửa)
+// Tải thông tin độc giả khi ở chế độ Sửa
 async function fetchUser() {
     if (!isEditMode.value) return;
     loading.value = true;
@@ -32,7 +32,7 @@ async function fetchUser() {
         const data = response.data;
         
         // Gán dữ liệu vào form
-        user.value = { ...data, Password: '' }; // Không hiển thị mật khẩu cũ (để trống)
+        user.value = { ...data, Password: '' }; // Không hiển thị mật khẩu cũ
     } catch (err) {
         console.error(err);
         alert("Không thể tải thông tin độc giả.");
@@ -45,8 +45,6 @@ async function fetchUser() {
 async function handleSubmit() {
     loading.value = true;
     try {
-        // Logic xử lý mật khẩu khi Sửa:
-        // Nếu đang Sửa mà ô Password rỗng -> Xóa trường Password khỏi object gửi đi (để backend không update pass)
         const userDataToSend = { ...user.value };
         if (isEditMode.value && !userDataToSend.Password) {
             delete userDataToSend.Password;

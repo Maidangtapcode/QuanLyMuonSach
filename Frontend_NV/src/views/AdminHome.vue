@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { authApiService } from '@/services/api.service';
-
 // Biến lưu số liệu thống kê
 const stats = ref({
     totalBooks: 0,
@@ -10,12 +9,11 @@ const stats = ref({
     overdue: 0
 });
 const loading = ref(true);
-
 // Hàm tải và tính toán số liệu
 async function fetchStats() {
     loading.value = true;
     try {
-        // Gọi 3 API song song (nhanh hơn gọi từng cái)
+        // Gọi 3 API song song
         const [booksRes, readersRes, borrowsRes] = await Promise.all([
             authApiService.get('/sachs'),
             authApiService.get('/docgias'),
@@ -26,17 +24,17 @@ async function fetchStats() {
         const readers = readersRes.data;
         const borrows = borrowsRes.data;
 
-        // 1. Tổng số sách (đếm số đầu sách)
+        // Tổng số sách
         stats.value.totalBooks = books.length;
 
-        // 2. Tổng số độc giả
+        // Tổng số độc giả
         stats.value.totalReaders = readers.length;
 
-        // 3. Đang mượn (những phiếu chưa có NgayTra)
+        // Đang mượn (những phiếu chưa có NgayTra)
         const activeBorrows = borrows.filter(item => !item.NgayTra);
         stats.value.borrowing = activeBorrows.length;
 
-        // 4. Quá hạn (Đang mượn VÀ Ngày hiện tại > Hạn trả)
+        // Quá hạn (Đang mượn và Ngày hiện tại > Hạn trả)
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset giờ để so sánh ngày chính xác
 
@@ -146,7 +144,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Hiệu ứng hover nhẹ cho các card */
 .card:hover {
     transform: translateY(-5px);
     transition: transform 0.3s ease;

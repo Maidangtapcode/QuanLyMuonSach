@@ -11,7 +11,8 @@ class MuonSachService {
             MSNV: payload.MSNV,     
             NgayMuon: payload.NgayMuon,
             NgayTra: payload.NgayTra, 
-            HanTra: payload.HanTra || this.calculateDueDate(payload.NgayMuon)
+            HanTra: payload.HanTra || this.calculateDueDate(payload.NgayMuon),
+            TrangThai: payload.TrangThai !== undefined ? payload.TrangThai : 0
         };
 
         Object.keys(muonSach).forEach(

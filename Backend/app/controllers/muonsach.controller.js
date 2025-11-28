@@ -5,7 +5,7 @@ const SachService = require("../services/sach.service");
 
 exports.create = async (req, res, next) => {
     if (!req.body?.MaDocGia || !req.body?.MaSach || !req.body?.NgayMuon) {
-        return next(new ApiError(400, "MaDocGia, MaSach, NgayMuon can not be empty"));
+    return next(new ApiError(400, "MaDocGia, MaSach, NgayMuon can not be empty"));
     }
     try {
         const muonSachService = new MuonSachService(MongoDB.client);
@@ -67,25 +67,56 @@ exports.findOne = async (req, res, next) => {
     }
 };
 
+// Hàm Update (Xử lý cả DUYỆT và TRẢ)
 exports.update = async (req, res, next) => {
-    if (!req.body?.NgayTra) {
-        return next(new ApiError(400, "NgayTra to update can not be empty"));
+    // 1. Kiểm tra dữ liệu đầu vào: Phải có ít nhất 1 trong 2 hành động
+    const isApproving = req.body.TrangThai !== undefined; // Đang duyệt?
+    const isReturning = req.body.NgayTra; // Đang trả?
+
+    if (!isApproving && !isReturning) {
+        return next(new ApiError(400, "Dữ liệu cập nhật không hợp lệ (Cần TrangThai hoặc NgayTra)"));
     }
+
     try {
         const muonSachService = new MuonSachService(MongoDB.client);
         const sachService = new SachService(MongoDB.client);
+
+        // 2. Tìm phiếu mượn cũ để lấy thông tin
         const existingRecord = await muonSachService.findById(req.params.id);
         if (!existingRecord) {
             return next(new ApiError(404, "Phiếu mượn không tìm thấy."));
         }
-        if (existingRecord.NgayTra) {
-            return next(new ApiError(400, "Sách này đã được trả trước đó."));
+
+        // 3. XỬ LÝ LOGIC TRẢ SÁCH
+        if (isReturning) {
+            if (existingRecord.NgayTra) {
+                return next(new ApiError(400, "Sách này đã được trả trước đó."));
+            }
+            // Nếu trả sách thì cập nhật NgayTra
+            const document = await muonSachService.update(req.params.id, { 
+                NgayTra: req.body.NgayTra 
+            });
+            
+            // Tăng tồn kho lại (+1)
+            if (document) {
+                await sachService.updateStockByMaSach(existingRecord.MaSach, +1);
+            }
+            return res.send({ message: "Đã trả sách thành công" });
         }
-        const document = await muonSachService.update(req.params.id, req.body);
-        if (document) {
-            await sachService.updateStockByMaSach(existingRecord.MaSach, +1);
+
+        // 4. XỬ LÝ LOGIC DUYỆT SÁCH
+        if (isApproving) {
+            // Cập nhật Trạng thái và MSNV người duyệt
+            const document = await muonSachService.update(req.params.id, {
+                TrangThai: req.body.TrangThai,
+                MSNV: req.body.MSNV
+            });
+            // Lưu ý: Không cần trừ tồn kho ở đây nữa, 
+            // vì chúng ta đã trừ ngay lúc Độc giả bấm "Đặt mượn" rồi.
+            
+            return res.send({ message: "Đã duyệt phiếu mượn thành công" });
         }
-        return res.send({ message: "Borrow record was updated successfully" });
+
     } catch (error) {
         return next(
             new ApiError(500, `Error updating borrow record with id=${req.params.id}`)

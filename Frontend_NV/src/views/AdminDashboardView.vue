@@ -1,9 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
-
 const authStore = useAuthStore();
-
 function handleLogout() {
     if (confirm("Bạn có chắc muốn đăng xuất?")) {
         authStore.logout();

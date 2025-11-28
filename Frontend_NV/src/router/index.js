@@ -19,13 +19,13 @@ const routes = [
   },
   {
     path: '/admin',
-    component: AdminDashboardView, // Layout Admin bao trùm
+    component: AdminDashboardView, 
     meta: { requiresAuth: true },
     children: [
       {
         path: '',
-        name: 'admin-home', // Đặt tên cho trang chủ
-        component: AdminHome, // Thay đổi từ redirect sang component này
+        name: 'admin-home',
+        component: AdminHome,
     },
       // Quản lý Sách
       { path: 'books', name: 'admin-books', component: BookManagement },

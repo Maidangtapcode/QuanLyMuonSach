@@ -1,17 +1,18 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'; 
+import { ref, onMounted, computed } from 'vue';
 import { authApiService } from '@/services/api.service';
-
+import { useAuthStore } from '@/stores/auth.store'; 
+const authStore = useAuthStore();
 const borrows = ref([])
 const books = ref([])
 const readers = ref([])
 const loading = ref(true)
 const filterStatus = ref('ALL');
-// Tải tất cả dữ liệu cần thiết
+// Tải tất cả dữ liệu
 async function fetchData() {
     loading.value = true
     try {
-        // Gọi 3 API song song để tiết kiệm thời gian
+        // Gọi 3 API song song
         const [borrowsRes, booksRes, readersRes] = await Promise.all([
             authApiService.get('/muonsachs'),
             authApiService.get('/sachs'),
@@ -29,13 +30,13 @@ async function fetchData() {
     }
 }
 
-// Hàm Helper: Tìm Tên Sách từ MaSach
+// Tìm Tên Sách từ MaSach
 function getBookName(maSach) {
     const book = books.value.find((b) => b.MaSach === maSach)
     return book ? book.TenSach : maSach
 }
 
-// Hàm Helper: Tìm Tên Độc Giả từ MaDocGia
+// Tìm Tên Độc Giả từ MaDocGia
 function getReaderName(maDocGia) {
     const reader = readers.value.find((r) => r.MaDocGia === maDocGia)
     return reader ? `${reader.HoLot} ${reader.Ten}` : maDocGia
@@ -58,25 +59,49 @@ const filteredBorrows = computed(() => {
         return true;
     });
 });
-// Xử lý TRẢ SÁCH
+// Xử lý trả sách
 async function handleReturn(borrowId) {
-    if (confirm('Xác nhận độc giả đã trả sách?')) {
+    if (confirm("Xác nhận độc giả đã trả sách?")) {
         try {
-            // Lấy ngày hiện tại YYYY-MM-DD
-            const today = new Date().toISOString().split('T')[0]
-
+            const today = new Date().toISOString().split('T')[0];
+            
             await authApiService.put(`/muonsachs/${borrowId}`, {
-                NgayTra: today,
-            })
-
-            alert('Đã trả sách thành công!')
-            await fetchData() // Tải lại dữ liệu (kho sách sẽ tự tăng)
+                NgayTra: today
+            });
+            // Cập nhật giao diện ngay
+            const item = borrows.value.find(b => b._id === borrowId);
+            if (item) {
+                item.NgayTra = today; // Gán ngày trả -> Badge chuyển sang xanh "Đã trả"
+            }
+            alert("Đã trả sách thành công!");
         } catch (err) {
-            alert('Lỗi: ' + (err.response?.data?.message || err.message))
+            alert("Lỗi: " + (err.response?.data?.message || err.message));
         }
     }
 }
-
+// Xử lý duyệt phiếu mượn
+async function handleApprove(borrowId) {
+    if (confirm("Duyệt yêu cầu mượn sách này?")) {
+        try {
+            await authApiService.put(`/muonsachs/${borrowId}`, {
+                TrangThai: 1, 
+                MSNV: authStore.user.MSNV
+            });
+            // Tìm phiếu mượn trong danh sách hiện tại
+            const item = borrows.value.find(b => b._id === borrowId);
+            // Tìm thấy đổi trạng thái của nó sang 1
+            if (item) {
+                item.TrangThai = 1;
+                // Cập nhật luôn người duyệt để hiển thị nếu cần
+                item.MSNV = authStore.user.MSNV; 
+            }
+            alert("Đã duyệt thành công!");
+        } catch (err) {
+            alert("Lỗi khi duyệt.");
+            console.error(err);
+        }
+    }
+}
 // Xóa bản ghi (chỉ dùng khi nhập sai)
 async function handleDelete(id) {
     if (confirm('Bạn có chắc muốn xóa phiếu mượn này? (Hành động này không hoàn trả sách vào kho)')) {
@@ -90,21 +115,21 @@ async function handleDelete(id) {
     }
 }
 function isOverdue(item) {
-    // 1. Nếu đã trả rồi thì KHÔNG tính là quá hạn
+    // Nếu đã trả thì không tính là quá hạn
     if (item.NgayTra) return false
 
-    // 2. Nếu không có Hạn trả (dữ liệu cũ) thì bỏ qua
+    // Nếu không có hạn trả thì bỏ qua - dữ liệu cũ
     if (!item.HanTra) return false
 
-    // 3. So sánh ngày
+    // So sánh ngày
     const today = new Date()
     const dueDate = new Date(item.HanTra)
 
-    // Reset giờ phút giây về 0 để so sánh chính xác theo ngày
+    // Reset giờ phút giây về 0 để so sánh
     today.setHours(0, 0, 0, 0)
     dueDate.setHours(0, 0, 0, 0)
 
-    // Nếu hôm nay lớn hơn hạn trả -> QUÁ HẠN
+    // Nếu hôm nay lớn hơn hạn trả -> quá hạn
     return today > dueDate
 }
 onMounted(() => {
@@ -121,16 +146,20 @@ onMounted(() => {
         <div v-else>
             <div class="mb-3 d-flex justify-content-end">
                 <div class="btn-group shadow-sm" role="group">
-                    <input type="radio" class="btn-check" name="btnradio" id="filterAll" value="ALL" v-model="filterStatus">
+                    <input type="radio" class="btn-check" name="btnradio" id="filterAll" value="ALL"
+                        v-model="filterStatus">
                     <label class="btn btn-outline-primary" for="filterAll">Tất cả</label>
 
-                    <input type="radio" class="btn-check" name="btnradio" id="filterBorrowing" value="BORROWING" v-model="filterStatus">
+                    <input type="radio" class="btn-check" name="btnradio" id="filterBorrowing" value="BORROWING"
+                        v-model="filterStatus">
                     <label class="btn btn-outline-warning text-dark" for="filterBorrowing">Đang mượn</label>
 
-                    <input type="radio" class="btn-check" name="btnradio" id="filterReturned" value="RETURNED" v-model="filterStatus">
+                    <input type="radio" class="btn-check" name="btnradio" id="filterReturned" value="RETURNED"
+                        v-model="filterStatus">
                     <label class="btn btn-outline-success" for="filterReturned">Đã trả</label>
 
-                    <input type="radio" class="btn-check" name="btnradio" id="filterOverdue" value="OVERDUE" v-model="filterStatus">
+                    <input type="radio" class="btn-check" name="btnradio" id="filterOverdue" value="OVERDUE"
+                        v-model="filterStatus">
                     <label class="btn btn-outline-danger" for="filterOverdue">
                         <i class="fa-solid fa-triangle-exclamation"></i> Quá hạn
                     </label>
@@ -141,7 +170,8 @@ onMounted(() => {
                     <tr>
                         <th>Độc Giả</th>
                         <th>Sách Mượn</th>
-                        <th>Thời Gian</th> <th>Ngày Trả</th>
+                        <th>Thời Gian</th>
+                        <th>Ngày Trả</th>
                         <th>Trạng Thái</th>
                         <th class="text-center">Hành động</th>
                     </tr>
@@ -164,14 +194,22 @@ onMounted(() => {
                         </td>
                         <td>{{ item.NgayTra || '---' }}</td>
                         <td>
-                            <span v-if="item.NgayTra" class="badge bg-success">Đã trả</span>
+                            <span v-if="item.TrangThai === 0" class="badge bg-warning text-dark">Chờ duyệt</span>
+                            <span v-else-if="item.NgayTra" class="badge bg-success">Đã trả</span>
                             <span v-else-if="isOverdue(item)" class="badge bg-danger">QUÁ HẠN</span>
-                            <span v-else class="badge bg-warning text-dark">Đang mượn</span>
+                            <span v-else class="badge bg-primary">Đang mượn</span>
                         </td>
+
                         <td class="text-center">
-                            <button v-if="!item.NgayTra" class="btn btn-sm btn-success me-2"
+
+                            <button v-if="item.TrangThai === 0" class="btn btn-sm btn-primary me-2"
+                                @click="handleApprove(item._id)" title="Duyệt phiếu mượn">
+                                <i class="fa-solid fa-check-double"></i> Duyệt
+                            </button>
+
+                            <button v-if="item.TrangThai === 1 && !item.NgayTra" class="btn btn-sm btn-success me-2"
                                 @click="handleReturn(item._id)" title="Xác nhận trả sách">
-                                <i class="fa-solid fa-check"></i> Trả sách
+                                <i class="fa-solid fa-rotate-left"></i> Trả
                             </button>
 
                             <button class="btn btn-sm btn-danger" @click="handleDelete(item._id)">
@@ -181,7 +219,7 @@ onMounted(() => {
                     </tr>
                 </tbody>
             </table>
-            
+
             <p v-if="filteredBorrows.length === 0" class="text-center mt-3 text-muted">
                 Không tìm thấy phiếu mượn nào theo bộ lọc này.
             </p>

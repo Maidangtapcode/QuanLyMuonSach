@@ -7,7 +7,6 @@ export const useAuthStore = defineStore("auth", () => {
     const token = ref(localStorage.getItem("token") || null);
     const user = ref(JSON.parse(localStorage.getItem("user")) || null);
 
-    // Hàm Login dành riêng cho Admin (Nhân viên)
     async function login(credentials) {
         try {
             // Gọi API đăng nhập của Nhân viên
@@ -44,9 +43,7 @@ export const useAuthStore = defineStore("auth", () => {
         // Quay về trang login
         router.push("/login");
     }
-
-    // Hàm này giữ lại để sau này bạn muốn ẩn hiện nút bấm
-    // Ví dụ: Chỉ 'Quản lý' mới thấy nút Xóa nhân viên, còn nhân viên thường thì không
+    
     function hasRole(roleName) {
         return user.value && user.value.ChucVu === roleName;
     }

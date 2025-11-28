@@ -9,9 +9,9 @@ const searchText = ref('');
 const categories = ref([]); 
 const selectedCategory = ref('');
 
-// === BIẾN PHÂN TRANG ===
+// biên phân trang
 const currentPage = ref(1);
-const itemsPerPage = 5; // Số sách mỗi trang (bạn có thể sửa thành 10)
+const itemsPerPage = 5; // Số sách mỗi trang
 
 async function fetchBooks() {
     loading.value = true;
@@ -22,8 +22,7 @@ async function fetchBooks() {
         queryParams.searchText = searchText.value;
     }
     if (selectedCategory.value) {
-        // Lưu ý: Backend đang đợi 'theLoai' (chữ thường), không phải 'TheLoai'
-        queryParams.theLoai = selectedCategory.value;
+        queryParams.TheLoai = selectedCategory.value;
     }
 
     try {
@@ -39,19 +38,19 @@ async function fetchBooks() {
     }
 }
 
-// 1. Tính tổng số trang
+// Tính tổng số trang
 const totalPages = computed(() => {
     return Math.ceil(books.value.length / itemsPerPage);
 });
 
-// 2. Cắt dữ liệu để hiển thị (Logic phân trang)
+// Cắt dữ liệu để hiển thị
 const paginatedBooks = computed(() => {
     const startIndex = (currentPage.value - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return books.value.slice(startIndex, endIndex);
 });
 
-// 3. Hàm chuyển trang
+// Hàm chuyển trang
 function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
@@ -220,7 +219,6 @@ onMounted(() => {
     display: inline-flex;
     align-items: center;
 }
-/* Làm con trỏ chuột thành hình bàn tay khi hover vào nút phân trang */
 .page-link {
     cursor: pointer;
 }

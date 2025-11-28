@@ -6,7 +6,7 @@ const users = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
-// Tải danh sách Độc giả
+// Tải danh sách độc giả
 async function fetchUsers() {
     loading.value = true;
     try {
@@ -20,13 +20,13 @@ async function fetchUsers() {
     }
 }
 
-// Xóa Độc giả
+// Xóa độc giả
 async function handleDelete(id, name) {
     if (confirm(`Bạn có chắc muốn xóa độc giả "${name}"?`)) {
         try {
             await authApiService.delete(`/docgias/${id}`);
             alert("Đã xóa thành công!");
-            await fetchUsers(); // Tải lại
+            await fetchUsers(); //tải lại
         } catch (err) {
             alert("Lỗi: Không thể xóa độc giả này (có thể họ đang mượn sách).");
             console.error(err);
