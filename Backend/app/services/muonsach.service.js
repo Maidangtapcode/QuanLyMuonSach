@@ -92,7 +92,7 @@ class MuonSachService {
             { $set: updateData }, // Update chính xác những trường này
             { returnDocument: "after" }
         );
-        return result.value;
+        return result;
     }
 
     async delete(id) {

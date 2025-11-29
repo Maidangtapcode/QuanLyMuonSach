@@ -102,8 +102,9 @@ exports.update = async (req, res, next) => {
                 TienPhat: tienPhat,
                 TrangThai: 2 // <--- QUAN TRỌNG: ÉP CỨNG TRẠNG THÁI LÀ 2 (ĐÃ TRẢ)
             });
-            
+            console.log("Document sau update:", document);
             if (document) {
+                console.log("Đang cộng tồn kho cho sách:", existingRecord.MaSach); // Log kiểm tra
                 await sachService.updateStockByMaSach(existingRecord.MaSach, +1);
             }
             return res.send({ message: "Đã trả sách", tienPhat: tienPhat });
