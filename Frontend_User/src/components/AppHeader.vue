@@ -21,10 +21,11 @@ function handleLogout() {
                 <RouterLink to="/my-books" class="btn btn-light text-primary btn-sm me-3 fw-bold">
                     <i class="fa-solid fa-bookmark me-1"></i> Sách của tôi
                 </RouterLink>
-
-                <div class="me-3 d-none d-md-block">
+                <RouterLink to="/profile" class="text-white text-decoration-none">
+                    <div class="me-3 d-none d-md-block">
                     Xin chào, <strong>{{ authStore.user?.Ten }}</strong>
                 </div>
+                </RouterLink>
                 <button class="btn btn-outline-light btn-sm" @click="handleLogout">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>

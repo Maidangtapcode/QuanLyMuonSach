@@ -3,7 +3,6 @@ defineProps({
     categories: { type: Array, default: () => [] }
 });
 
-// Định nghĩa các biến model để đồng bộ dữ liệu với cha
 // modelValue là searchText, category là selectedCategory
 const searchText = defineModel('searchText');
 const selectedCategory = defineModel('selectedCategory');
@@ -32,7 +31,7 @@ const selectedCategory = defineModel('selectedCategory');
                     </div>
                     <div class="col-md-4">
                         <select class="form-select" v-model="selectedCategory">
-                            <option value="">-- Tất cả thể loại --</option>
+                            <option value="">Tất cả thể loại</option>
                             <option v-for="cat in categories" :key="cat" :value="cat">
                                 {{ cat }}
                             </option>

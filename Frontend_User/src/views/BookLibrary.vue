@@ -2,10 +2,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { apiService } from '@/services/api.service';
 import { useAuthStore } from '@/stores/auth.store';
-
-// Import 3 Component con
 import AppHeader from '@/components/AppHeader.vue';
-import BookHero from '@/components/BookHero.vue'; // <--- MỚI
+import BookHero from '@/components/BookHero.vue'; 
 import BookCard from '@/components/BookCard.vue';
 
 const authStore = useAuthStore();
@@ -45,7 +43,7 @@ const filteredBooks = computed(() => {
 
         // Lọc theo thể loại
         const matchCategory = selectedCategory.value
-            ? book.theLoai === selectedCategory.value
+            ? book.TheLoai === selectedCategory.value
             : true;
 
         return matchSearch && matchCategory;

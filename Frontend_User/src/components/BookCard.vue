@@ -32,7 +32,7 @@ const PLACEHOLDER_IMG = 'https://placehold.co/400x600?text=No+Image';
         <div class="card-body d-flex flex-column">
             <div class="mb-2">
                 <span class="badge bg-light text-primary border border-primary-subtle">
-                    {{ book.theLoai || 'Tổng hợp' }}
+                    {{ book.TheLoai || 'Tổng hợp' }}
                 </span>
             </div>
             
@@ -67,7 +67,6 @@ const PLACEHOLDER_IMG = 'https://placehold.co/400x600?text=No+Image';
 </template>
 
 <style scoped>
-/* Copy CSS của card từ file cũ sang đây */
 .book-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
