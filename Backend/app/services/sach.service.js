@@ -16,7 +16,8 @@ class SachService {
             TacGia: payload.TacGia,
             HinhAnh: payload.HinhAnh,
             SoQuyenHienCo: payload.SoQuyenHienCo,
-            TheLoai: payload.TheLoai
+            TheLoai: payload.TheLoai,
+            MoTa: payload.MoTa
         };
 
         Object.keys(sach).forEach(

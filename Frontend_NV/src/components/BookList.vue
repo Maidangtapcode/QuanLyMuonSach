@@ -157,7 +157,7 @@ onMounted(() => {
                     <tr v-for="book in paginatedBooks" :key="book._id">
                         <td>{{ book.MaSach }}</td>
                         <td>{{ book.TenSach }}</td>
-                        <td>{{ book.theLoai }}</td> 
+                        <td>{{ book.TheLoai }}</td> 
                         <td>{{ book.TacGia }}</td>
                         <td>{{ book.SoQuyen }}</td>
                         <td>

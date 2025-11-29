@@ -7,7 +7,7 @@ const authStore = useAuthStore();
 const borrows = ref([]);
 const books = ref([]);
 const loading = ref(true);
-const activeTab = ref('current'); 
+const activeTab = ref('current');
 async function fetchData() {
     loading.value = true;
     try {
@@ -53,6 +53,10 @@ const currentBorrows = computed(() => {
 const historyBorrows = computed(() => {
     return borrows.value.filter(item => item.NgayTra);
 });
+function formatCurrency(amount) {
+    if (!amount) return '0 đ';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
 
 onMounted(() => {
     fetchData();
@@ -94,7 +98,8 @@ onMounted(() => {
 
                 <div v-else class="row g-3">
                     <div class="col-md-6 col-lg-4" v-for="item in currentBorrows" :key="item._id">
-                        <div class="card h-100 shadow-sm border-0" :class="{ 'border-danger border-2': isOverdue(item) }">
+                        <div class="card h-100 shadow-sm border-0"
+                            :class="{ 'border-danger border-2': isOverdue(item) }">
                             <div class="card-body">
                                 <h5 class="card-title fw-bold text-primary mb-3">
                                     {{ getBookName(item.MaSach) }}
@@ -113,8 +118,7 @@ onMounted(() => {
                                 </p>
                                 <p class="card-text">
                                     <i class="fa-solid fa-hourglass-end me-2 text-muted"></i>
-                                    Hạn trả: <strong :class="{ 'text-danger': isOverdue(item) }">{{ item.HanTra
-                                        }}</strong>
+                                    Hạn trả: <strong :class="{ 'text-danger': isOverdue(item) }">{{ item.HanTra}}</strong>
                                 </p>
 
                                 <div v-if="isOverdue(item)" class="alert alert-danger mt-3 mb-0 py-2 small">
@@ -138,6 +142,7 @@ onMounted(() => {
                             <th>Tên sách</th>
                             <th>Ngày mượn</th>
                             <th>Ngày trả</th>
+                            <th>Phạt quá hạn</th>
                             <th>Trạng thái</th>
                         </tr>
                     </thead>
@@ -146,6 +151,13 @@ onMounted(() => {
                             <td>{{ getBookName(item.MaSach) }}</td>
                             <td>{{ item.NgayMuon }}</td>
                             <td>{{ item.NgayTra }}</td>
+                            <td>
+                                <span v-if="item.TienPhat > 0" class="text-danger fw-bold">
+                                    {{ formatCurrency(item.TienPhat) }}
+                                </span>
+                                <span v-else class="text-success">0 đ</span>
+                            </td>
+
                             <td><span class="badge bg-success">Đã trả</span></td>
                         </tr>
                     </tbody>

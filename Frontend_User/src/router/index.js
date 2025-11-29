@@ -3,7 +3,8 @@ import { useAuthStore } from "@/stores/auth.store";
 import LoginView from "../views/LoginView.vue";
 import MyBooks from "../views/MyBooks.vue";
 import BookLibrary from "../views/BookLibrary.vue"; 
-
+import ProfileView from "../views/ProfileView.vue";
+import BookDetail from "../views/BookDetail.vue";
 const routes = [
     {
         path: "/login",
@@ -20,6 +21,18 @@ const routes = [
         path: "/my-books",
         name: "my-books",
         component: MyBooks,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: "/profile",
+        name: "profile",
+        component: ProfileView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: "/books/:id", // :id là tham số động
+        name: "book-detail",
+        component: BookDetail,
         meta: { requiresAuth: true }
     },
     {

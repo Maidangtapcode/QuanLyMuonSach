@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { authApiService } from '@/services/api.service';
 
-
 const props = defineProps({
     bookId: {
         type: String,
@@ -14,6 +13,7 @@ const props = defineProps({
 const router = useRouter();
 const isEditMode = computed(() => !!props.bookId);
 const publishers = ref([]);
+const isUploading = ref(false); // Biến để hiện loading khi đang upload ảnh
 const book = ref({
     MaSach: '',
     TenSach: '',
@@ -23,7 +23,8 @@ const book = ref({
     MaNXB: '',
     TacGia: '',
     HinhAnh: '',
-    TheLoai: ''
+    TheLoai: '',
+    MoTa: ''
 });
 const loading = ref(false);
 const error = ref(null);
@@ -68,6 +69,34 @@ async function fetchPublishers() {
         console.error("Lỗi: Không thể tải danh sách NXB.", err);
     }
 }
+async function handleFileUpload(event) {
+    const file = event.target.files[0]; // Lấy file đầu tiên
+    if (!file) return;
+
+    // Chuẩn bị Form Data để gửi
+    const formData = new FormData();
+    formData.append('image', file); // Key 'image' phải khớp với backend
+
+    isUploading.value = true;
+    try {
+        // Gọi API upload (Lưu ý: Content-Type sẽ tự động được set bởi axios khi gửi FormData)
+        // Chúng ta dùng authApiService để đảm bảo bảo mật, hoặc apiService thường cũng được
+        const response = await authApiService.post('/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        // Thành công: Backend trả về { url: "..." }
+        // Gán URL đó vào trường hinhAnh của sách
+        book.value.HinhAnh = response.data.url;
+
+    } catch (err) {
+        alert("Lỗi upload ảnh: " + (err.response?.data?.message || err.message));
+    } finally {
+        isUploading.value = false;
+    }
+}
 
 onMounted(() => {
     fetchBookData();
@@ -103,9 +132,22 @@ onMounted(() => {
                 <input type="text" class="form-control" id="tacGia" v-model="book.TacGia">
             </div>
             <div class="mb-3">
-                <label for="hinhAnh" class="form-label">Link Hình Ảnh</label>
-                <input type="text" class="form-control" id="hinhAnh" v-model="book.HinhAnh"
-                    placeholder="https://example.com/image.png">
+                <label class="form-label">Hình ảnh Bìa sách</label>
+                <input type="file" class="form-control" accept="image/*" @change="handleFileUpload">
+                <div v-if="isUploading" class="text-primary mt-2">
+                    <div class="spinner-border spinner-border-sm me-2"></div>
+                    Đang tải ảnh lên...
+                </div>
+                <div v-if="book.HinhAnh" class="mt-3 text-center p-2 border rounded bg-light">
+                    <p class="small text-muted mb-1">Ảnh hiện tại:</p>
+                    <img :src="book.HinhAnh" alt="Preview" class="img-fluid shadow-sm"
+                        style="max-height: 200px; object-fit: contain;">
+                    <br>
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" @click="book.HinhAnh = ''">
+                        Xóa ảnh
+                    </button>
+                </div>
+                <input type="hidden" v-model="book.HinhAnh">
             </div>
             <div class="mb-3">
                 <label for="theLoai" class="form-label">Thể loại</label>
@@ -138,7 +180,11 @@ onMounted(() => {
                     </option>
                 </select>
             </div>
-
+            <div class="mb-3">
+                <label for="moTa" class="form-label">Mô tả / Tóm tắt nội dung</label>
+                <textarea class="form-control" id="moTa" v-model="book.MoTa" rows="4"
+                    placeholder="Nhập tóm tắt nội dung sách..."></textarea>
+            </div>
             <hr />
 
             <div class="d-flex justify-content-between">

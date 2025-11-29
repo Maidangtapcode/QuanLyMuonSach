@@ -12,7 +12,8 @@ class MuonSachService {
             NgayMuon: payload.NgayMuon,
             NgayTra: payload.NgayTra, 
             HanTra: payload.HanTra || this.calculateDueDate(payload.NgayMuon),
-            TrangThai: payload.TrangThai !== undefined ? payload.TrangThai : 0
+            TrangThai: payload.TrangThai,
+            TienPhat: payload.TienPhat
         };
 
         Object.keys(muonSach).forEach(
@@ -30,7 +31,16 @@ class MuonSachService {
     }
     async create(payload) {
         const muonSach = this.extractMuonSachData(payload);
+        
+        // Gán mặc định NgayTra là null (như cũ)
         muonSach.NgayTra = muonSach.NgayTra || null; 
+
+        // === THÊM ĐOẠN NÀY ===
+        // Nếu tạo mới mà không gửi TrangThai lên, mặc định là 0 (Chờ duyệt)
+        if (muonSach.TrangThai === undefined) {
+            muonSach.TrangThai = 0;
+        }
+        // ====================
 
         const result = await this.MuonSach.insertOne(muonSach);
         return await this.findById(result.insertedId);
@@ -66,16 +76,23 @@ class MuonSachService {
         const filter = {
             _id: ObjectId.isValid(id) ? new ObjectId(String(id)) : null,
         };
-        const updateData = {
-            NgayTra: payload.NgayTra
-        };
+
+        // === SỬA ĐOẠN NÀY: Tự xây dựng object update thay vì dùng hàm extract ===
+        // Lý do: Để đảm bảo TrangThai và TienPhat chắc chắn được đưa vào
+        const updateData = {};
         
+        if (payload.NgayTra !== undefined) updateData.NgayTra = payload.NgayTra;
+        if (payload.TrangThai !== undefined) updateData.TrangThai = payload.TrangThai;
+        if (payload.TienPhat !== undefined) updateData.TienPhat = payload.TienPhat;
+        if (payload.MSNV !== undefined) updateData.MSNV = payload.MSNV;
+        // =======================================================================
+
         const result = await this.MuonSach.findOneAndUpdate(
             filter,
-            { $set: updateData },
+            { $set: updateData }, // Update chính xác những trường này
             { returnDocument: "after" }
         );
-        return result;
+        return result.value;
     }
 
     async delete(id) {

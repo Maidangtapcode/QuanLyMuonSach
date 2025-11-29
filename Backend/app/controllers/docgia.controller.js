@@ -142,3 +142,71 @@ exports.login = async (req, res, next) => {
         return next(new ApiError(500, "An error occurred during login"));
     }
 };
+exports.updateProfile = async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) {
+        return next(new ApiError(400, "Data to update can not be empty"));
+    }
+
+    try {
+        const docGiaService = new DocGiaService(MongoDB.client);
+        // Lấy ID từ Token (do middleware verifyToken gắn vào req.user)
+        const userId = req.user.userId; 
+
+        // Chỉ cho phép sửa một số trường nhất định (Tránh sửa MaDocGia hay Password ở đây)
+        const updateData = {
+            HoLot: req.body.HoLot,
+            Ten: req.body.Ten,
+            NgaySinh: req.body.NgaySinh,
+            Phai: req.body.Phai,
+            DiaChi: req.body.DiaChi,
+            DienThoai: req.body.DienThoai
+        };
+
+        const document = await docGiaService.update(userId, updateData);
+        if (!document) {
+            return next(new ApiError(404, "Reader not found"));
+        }
+        return res.send({ message: "Profile updated successfully", user: document });
+    } catch (error) {
+        return next(new ApiError(500, "Error updating profile"));
+    }
+};
+
+// === 2. HÀM ĐỔI MẬT KHẨU ===
+exports.changePassword = async (req, res, next) => {
+    if (!req.body?.oldPassword || !req.body?.newPassword) {
+        return next(new ApiError(400, "Old password and new password are required"));
+    }
+
+    try {
+        const docGiaService = new DocGiaService(MongoDB.client);
+        const userId = req.user.userId;
+
+        // 1. Lấy thông tin độc giả từ DB (bao gồm mật khẩu cũ đã hash)
+        const user = await docGiaService.findById(userId);
+        if (!user) {
+            return next(new ApiError(404, "User not found"));
+        }
+
+        // 2. So sánh mật khẩu cũ người dùng nhập với mật khẩu trong DB
+        const passwordIsValid = await bcrypt.compare(req.body.oldPassword, user.Password);
+        if (!passwordIsValid) {
+            return next(new ApiError(401, "Mật khẩu cũ không chính xác!"));
+        }
+
+        // 3. Hash mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(req.body.newPassword, salt);
+
+        // 4. Cập nhật vào DB
+        // (Lưu ý: Bạn phải đảm bảo hàm update của service nhận trường Password)
+        // Để chắc chắn, chúng ta gọi update trực tiếp với object password
+        await docGiaService.update(userId, { Password: hashedNewPassword });
+
+        return res.send({ message: "Đổi mật khẩu thành công!" });
+
+    } catch (error) {
+        console.log(error);
+        return next(new ApiError(500, "Error changing password"));
+    }
+};

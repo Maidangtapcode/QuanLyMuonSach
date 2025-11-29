@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { authApiService } from '@/services/api.service';
-import { useAuthStore } from '@/stores/auth.store'; 
+import { useAuthStore } from '@/stores/auth.store';
 const authStore = useAuthStore();
 const borrows = ref([])
 const books = ref([])
@@ -35,7 +35,10 @@ function getBookName(maSach) {
     const book = books.value.find((b) => b.MaSach === maSach)
     return book ? book.TenSach : maSach
 }
-
+function formatCurrency(amount) {
+    if (!amount) return '0 đ';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
 // Tìm Tên Độc Giả từ MaDocGia
 function getReaderName(maDocGia) {
     const reader = readers.value.find((r) => r.MaDocGia === maDocGia)
@@ -44,16 +47,16 @@ function getReaderName(maDocGia) {
 // Lọc phiếu mượn theo trạng thái
 const filteredBorrows = computed(() => {
     return borrows.value.filter(item => {
-        // Nếu chọn "Tất cả" -> Lấy hết
         if (filterStatus.value === 'ALL') return true;
+        
+        // BORROWING = Đang mượn (1) hoặc Chờ duyệt (0)
+        if (filterStatus.value === 'BORROWING') 
+            return item.TrangThai === 0 || item.TrangThai === 1;
 
-        // Nếu chọn "Đang mượn" -> Chỉ lấy cái chưa có NgayTra
-        if (filterStatus.value === 'BORROWING') return !item.NgayTra;
+        // RETURNED = Đã trả (2)
+        if (filterStatus.value === 'RETURNED') 
+            return item.TrangThai === 2;
 
-        // Nếu chọn "Đã trả" -> Chỉ lấy cái có NgayTra
-        if (filterStatus.value === 'RETURNED') return item.NgayTra;
-
-        // Nếu chọn "Quá hạn" -> Gọi hàm isOverdue
         if (filterStatus.value === 'OVERDUE') return isOverdue(item);
 
         return true;
@@ -64,16 +67,31 @@ async function handleReturn(borrowId) {
     if (confirm("Xác nhận độc giả đã trả sách?")) {
         try {
             const today = new Date().toISOString().split('T')[0];
-            
-            await authApiService.put(`/muonsachs/${borrowId}`, {
+
+            // Gọi API (Backend sẽ tự cập nhật TrangThai = 2 vào DB)
+            const response = await authApiService.put(`/muonsachs/${borrowId}`, {
                 NgayTra: today
             });
-            // Cập nhật giao diện ngay
+
+            const tienPhat = response.data.tienPhat;
+
+            // === SỬA ĐOẠN NÀY: Cập nhật giao diện ngay lập tức ===
             const item = borrows.value.find(b => b._id === borrowId);
             if (item) {
-                item.NgayTra = today; // Gán ngày trả -> Badge chuyển sang xanh "Đã trả"
+                item.NgayTra = today;
+                item.TienPhat = tienPhat;
+                
+                // QUAN TRỌNG: Phải gán TrangThai = 2 để giao diện đổi màu ngay
+                item.TrangThai = 2; 
             }
-            alert("Đã trả sách thành công!");
+            // ====================================================
+
+            if (tienPhat > 0) {
+                alert(`Đã trả sách. KHÁCH BỊ PHẠT: ${formatCurrency(tienPhat)}`);
+            } else {
+                alert("Đã trả sách thành công.");
+            }
+
         } catch (err) {
             alert("Lỗi: " + (err.response?.data?.message || err.message));
         }
@@ -84,7 +102,7 @@ async function handleApprove(borrowId) {
     if (confirm("Duyệt yêu cầu mượn sách này?")) {
         try {
             await authApiService.put(`/muonsachs/${borrowId}`, {
-                TrangThai: 1, 
+                TrangThai: 1,
                 MSNV: authStore.user.MSNV
             });
             // Tìm phiếu mượn trong danh sách hiện tại
@@ -93,7 +111,7 @@ async function handleApprove(borrowId) {
             if (item) {
                 item.TrangThai = 1;
                 // Cập nhật luôn người duyệt để hiển thị nếu cần
-                item.MSNV = authStore.user.MSNV; 
+                item.MSNV = authStore.user.MSNV;
             }
             alert("Đã duyệt thành công!");
         } catch (err) {
@@ -117,7 +135,7 @@ async function handleDelete(id) {
 function isOverdue(item) {
     // Nếu đã trả thì không tính là quá hạn
     if (item.NgayTra) return false
-
+    if (item.TrangThai === 2) return false;
     // Nếu không có hạn trả thì bỏ qua - dữ liệu cũ
     if (!item.HanTra) return false
 
@@ -173,6 +191,7 @@ onMounted(() => {
                         <th>Thời Gian</th>
                         <th>Ngày Trả</th>
                         <th>Trạng Thái</th>
+                        <th>Tiền Phạt</th>
                         <th class="text-center">Hành động</th>
                     </tr>
                 </thead>
@@ -195,19 +214,25 @@ onMounted(() => {
                         <td>{{ item.NgayTra || '---' }}</td>
                         <td>
                             <span v-if="item.TrangThai === 0" class="badge bg-warning text-dark">Chờ duyệt</span>
-                            <span v-else-if="item.NgayTra" class="badge bg-success">Đã trả</span>
-                            <span v-else-if="isOverdue(item)" class="badge bg-danger">QUÁ HẠN</span>
-                            <span v-else class="badge bg-primary">Đang mượn</span>
+                            <span v-else-if="item.TrangThai === 1" class="badge bg-primary">Đang mượn</span>
+                            <span v-else-if="item.TrangThai === 2" class="badge bg-success">Đã trả</span>
+
+                            <div v-if="item.TrangThai === 1 && isOverdue(item)" class="badge bg-danger mt-1">QUÁ HẠN
+                            </div>
                         </td>
-
+                        <td>
+                            <span v-if="item.TienPhat > 0" class="text-danger fw-bold">
+                                {{ formatCurrency(item.TienPhat) }}
+                            </span>
+                            <span v-else class="text-muted">-</span>
+                        </td>
                         <td class="text-center">
-
                             <button v-if="item.TrangThai === 0" class="btn btn-sm btn-primary me-2"
                                 @click="handleApprove(item._id)" title="Duyệt phiếu mượn">
                                 <i class="fa-solid fa-check-double"></i> Duyệt
                             </button>
 
-                            <button v-if="item.TrangThai === 1 && !item.NgayTra" class="btn btn-sm btn-success me-2"
+                            <button v-if="item.TrangThai === 1" class="btn btn-sm btn-success me-2"
                                 @click="handleReturn(item._id)" title="Xác nhận trả sách">
                                 <i class="fa-solid fa-rotate-left"></i> Trả
                             </button>
@@ -219,7 +244,6 @@ onMounted(() => {
                     </tr>
                 </tbody>
             </table>
-
             <p v-if="filteredBorrows.length === 0" class="text-center mt-3 text-muted">
                 Không tìm thấy phiếu mượn nào theo bộ lọc này.
             </p>

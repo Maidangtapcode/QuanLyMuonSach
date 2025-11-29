@@ -10,11 +10,8 @@ exports.create = async (req, res, next) => {
     if (!req.body?.MSNV || !req.body?.Password) {
         return next(new ApiError(400, "MSNV and Password can not be empty"));
     }
-
     try {
         const nhanVienService = new NhanVienService(MongoDB.client);
-
-        //KIỂM TRA TRÙNG LẶP MSNV
         const existing = await nhanVienService.findByMSNV(req.body.MSNV);
         if (existing) {
             return next(new ApiError(409, "MSNV already exists")); 
