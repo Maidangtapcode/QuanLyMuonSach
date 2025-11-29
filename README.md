@@ -1,6 +1,6 @@
-# Họ và Tên: Đặng Nhớ Mãi
-# MSSV: B2205947
-# Môn học: Phát triển ứng dụng web
+## Họ và Tên: Đặng Nhớ Mãi
+## MSSV: B2205947
+## Môn học: Phát triển ứng dụng web
 ---
 
 # Hệ Thống Quản Lý Thư Viện (Library Management System)
