@@ -67,31 +67,22 @@ async function handleReturn(borrowId) {
     if (confirm("Xác nhận độc giả đã trả sách?")) {
         try {
             const today = new Date().toISOString().split('T')[0];
-
             // Gọi API (Backend sẽ tự cập nhật TrangThai = 2 vào DB)
             const response = await authApiService.put(`/muonsachs/${borrowId}`, {
                 NgayTra: today
             });
-
             const tienPhat = response.data.tienPhat;
-
-            // === SỬA ĐOẠN NÀY: Cập nhật giao diện ngay lập tức ===
             const item = borrows.value.find(b => b._id === borrowId);
             if (item) {
                 item.NgayTra = today;
                 item.TienPhat = tienPhat;
-                
-                // QUAN TRỌNG: Phải gán TrangThai = 2 để giao diện đổi màu ngay
                 item.TrangThai = 2; 
             }
-            // ====================================================
-
             if (tienPhat > 0) {
                 alert(`Đã trả sách. KHÁCH BỊ PHẠT: ${formatCurrency(tienPhat)}`);
             } else {
                 alert("Đã trả sách thành công.");
             }
-
         } catch (err) {
             alert("Lỗi: " + (err.response?.data?.message || err.message));
         }
@@ -110,7 +101,6 @@ async function handleApprove(borrowId) {
             // Tìm thấy đổi trạng thái của nó sang 1
             if (item) {
                 item.TrangThai = 1;
-                // Cập nhật luôn người duyệt để hiển thị nếu cần
                 item.MSNV = authStore.user.MSNV;
             }
             alert("Đã duyệt thành công!");

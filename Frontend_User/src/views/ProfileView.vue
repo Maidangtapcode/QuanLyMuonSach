@@ -1,39 +1,33 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
-import { authApiService } from '@/services/api.service';// Dùng apiService thường, nhưng cần auth (chúng ta đã cấu hình interceptor rồi)
+import { authApiService } from '@/services/api.service';
 
 const authStore = useAuthStore();
-const activeTab = ref('info'); // 'info' hoặc 'password'
+const activeTab = ref('info'); 
 const loading = ref(false);
 
 // Dữ liệu form thông tin
 const userInfo = ref({
     HoLot: '', Ten: '', NgaySinh: '', Phai: 'Nam', DiaChi: '', DienThoai: ''
 });
-
 // Dữ liệu form đổi mật khẩu
 const passwordForm = ref({
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
 });
-
 // Lấy thông tin user mới nhất từ Server
 async function fetchProfile() {
-    // Vì ta chưa có API get /profile, ta có thể dùng lại thông tin trong authStore
-    // Hoặc gọi API get user by ID. Ở đây tạm dùng authStore cho nhanh
     const user = authStore.user;
     userInfo.value = { ...user };
 }
-
 // Cập nhật thông tin
 async function handleUpdateProfile() {
     loading.value = true;
     try {
         const response = await authApiService.put('/docgias/profile', userInfo.value);
         alert("Cập nhật thành công!");
-        // Cập nhật lại kho Pinia và LocalStorage
         authStore.user = { ...authStore.user, ...response.data.user };
         localStorage.setItem("user", JSON.stringify(authStore.user));
     } catch (err) {
@@ -42,7 +36,6 @@ async function handleUpdateProfile() {
         loading.value = false;
     }
 }
-
 // Đổi mật khẩu
 async function handleChangePassword() {
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {

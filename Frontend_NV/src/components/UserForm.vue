@@ -15,10 +15,10 @@ const user = ref({
     HoLot: '',
     Ten: '',
     NgaySinh: '',
-    Phai: 'Nam', // Mặc định
+    Phai: 'Nam', 
     DiaChi: '',
     DienThoai: '',
-    Password: '' // Trường mật khẩu
+    Password: '' 
 });
 
 const loading = ref(false);
@@ -30,7 +30,6 @@ async function fetchUser() {
     try {
         const response = await authApiService.get(`/docgias/${props.userId}`);
         const data = response.data;
-        
         // Gán dữ liệu vào form
         user.value = { ...data, Password: '' }; // Không hiển thị mật khẩu cũ
     } catch (err) {
@@ -49,13 +48,11 @@ async function handleSubmit() {
         if (isEditMode.value && !userDataToSend.Password) {
             delete userDataToSend.Password;
         }
-
         if (isEditMode.value) {
             await authApiService.put(`/docgias/${props.userId}`, userDataToSend);
         } else {
             await authApiService.post('/docgias', userDataToSend);
         }
-        
         alert("Lưu thành công!");
         router.push('/admin/users');
     } catch (err) {
@@ -69,7 +66,6 @@ onMounted(() => {
     fetchUser();
 });
 </script>
-
 <template>
     <form @submit.prevent="handleSubmit" class="p-3 border rounded shadow-sm bg-white">
         <div class="row">
@@ -120,9 +116,7 @@ onMounted(() => {
                 :required="!isEditMode" 
             >
         </div>
-        
         <hr>
-
         <div class="d-flex justify-content-between">
             <RouterLink to="/admin/users" class="btn btn-secondary">
                 <i class="fa-solid fa-arrow-left me-1"></i> Quay lại

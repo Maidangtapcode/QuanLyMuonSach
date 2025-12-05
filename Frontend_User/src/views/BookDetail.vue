@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiService } from '@/services/api.service';
 import { useAuthStore } from '@/stores/auth.store';
-
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -15,20 +14,13 @@ const publisherName = ref('');
 async function fetchBookDetail() {
     try {
         const id = route.params.id;
-        
-        // 2. GỌI SONG SONG 2 API: Lấy Sách VÀ Lấy DS Nhà Xuất Bản
         const [bookRes, pubRes] = await Promise.all([
             apiService.get(`/sachs/${id}`),
             apiService.get('/nhaxuatbans')
         ]);
-
         book.value = bookRes.data;
-        
-        // 3. TÌM TÊN NXB TƯƠNG ỨNG
         const publishers = pubRes.data;
         const foundPub = publishers.find(p => p.MaNXB === book.value.MaNXB);
-        
-        // Nếu tìm thấy thì lấy tên, không thì hiện lại cái Mã cũ
         publisherName.value = foundPub ? foundPub.TenNXB : book.value.MaNXB;
 
     } catch (err) {
@@ -38,20 +30,16 @@ async function fetchBookDetail() {
         loading.value = false;
     }
 }
-
-// Xử lý mượn sách (Logic giống trang chủ)
 async function handleBorrow() {
     if (!authStore.token) {
         alert("Vui lòng đăng nhập để mượn sách!");
         router.push('/login');
         return;
     }
-    
     if (book.value.soQuyenHienCo <= 0) {
         alert("Sách này tạm thời đã hết!");
         return;
     }
-
     if (confirm(`Đăng ký mượn sách: "${book.value.TenSach}"?`)) {
         try {
             const today = new Date().toISOString().split('T')[0];
@@ -68,11 +56,9 @@ async function handleBorrow() {
         }
     }
 }
-
 function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
-
 onMounted(() => {
     fetchBookDetail();
 });

@@ -5,10 +5,8 @@ defineProps({
         required: true
     }
 });
-
 const PLACEHOLDER_IMG = 'https://placehold.co/400x600?text=No+Image';
 </script>
-
 <template>
     <div class="card h-100 book-card border-0 shadow-sm">
         <div class="position-relative book-cover-wrapper">

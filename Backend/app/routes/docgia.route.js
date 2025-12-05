@@ -1,6 +1,6 @@
 const express = require("express");
 const docgia = require("../controllers/docgia.controller");
-const auth = require("../middleware/auth.middleware"); // Import Middleware
+const auth = require("../middleware/auth.middleware");
 const router = express.Router();
 // Route đổi mật khẩu
 router.route("/change-password")

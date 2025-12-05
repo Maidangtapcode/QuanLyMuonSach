@@ -5,12 +5,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import AppHeader from '@/components/AppHeader.vue';
 import BookHero from '@/components/BookHero.vue'; 
 import BookCard from '@/components/BookCard.vue';
-
 const authStore = useAuthStore();
 const books = ref([]);
 const categories = ref([]);
 const loading = ref(true);
-
 // Biến filter (sẽ được BookHero cập nhật tự động)
 const searchText = ref('');
 const selectedCategory = ref('');
@@ -32,7 +30,6 @@ async function fetchData() {
         loading.value = false;
     }
 }
-
 // Logic lọc sách
 const filteredBooks = computed(() => {
     return books.value.filter(book => {

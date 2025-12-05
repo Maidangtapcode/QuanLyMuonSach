@@ -31,7 +31,6 @@ const routes = [
       { path: 'books', name: 'admin-books', component: BookManagement },
       { path: 'books/new', name: 'admin-books-new', component: BookFormView },
       { path: 'books/edit/:id', name: 'admin-books-edit', component: BookFormView },
-
       // Quản lý NXB
       { path: 'publishers', name: 'admin-publishers', component: PublisherManagement },
       { path: 'publishers/new', name: 'admin-publishers-new', component: PublisherFormView },
@@ -51,12 +50,10 @@ const routes = [
     redirect: '/admin',
   },
 ]
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
-
 // Guard bảo vệ
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
@@ -68,5 +65,4 @@ router.beforeEach((to, from, next) => {
   }
   next()
 })
-
 export default router

@@ -79,13 +79,13 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(404, "Phiếu mượn không tìm thấy."));
         }
 
-        // 1. LOGIC TRẢ SÁCH
+        // Trả sách
         if (isReturning) {
             if (existingRecord.NgayTra) {
                 return next(new ApiError(400, "Sách này đã trả rồi."));
             }
 
-            // Tính tiền phạt (như bài trước)
+            // Tính tiền phạt
             const ngayTra = new Date(req.body.NgayTra);
             const hanTra = new Date(existingRecord.HanTra);
             let tienPhat = 0;
@@ -100,7 +100,7 @@ exports.update = async (req, res, next) => {
             const document = await muonSachService.update(req.params.id, { 
                 NgayTra: req.body.NgayTra,
                 TienPhat: tienPhat,
-                TrangThai: 2 // <--- QUAN TRỌNG: ÉP CỨNG TRẠNG THÁI LÀ 2 (ĐÃ TRẢ)
+                TrangThai: 2 // Đã trả
             });
             console.log("Document sau update:", document);
             if (document) {
@@ -110,10 +110,10 @@ exports.update = async (req, res, next) => {
             return res.send({ message: "Đã trả sách", tienPhat: tienPhat });
         }
 
-        // 2. LOGIC DUYỆT SÁCH
+        // Duyêt mượn sách
         if (isApproving) {
             await muonSachService.update(req.params.id, {
-                TrangThai: req.body.TrangThai, // Thường là 1
+                TrangThai: req.body.TrangThai, 
                 MSNV: req.body.MSNV
             });
             return res.send({ message: "Đã duyệt thành công" });

@@ -2,7 +2,6 @@
 defineProps({
     categories: { type: Array, default: () => [] }
 });
-
 // modelValue là searchText, category là selectedCategory
 const searchText = defineModel('searchText');
 const selectedCategory = defineModel('selectedCategory');

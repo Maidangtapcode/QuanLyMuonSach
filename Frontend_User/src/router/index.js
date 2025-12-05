@@ -30,7 +30,7 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: "/books/:id", // :id là tham số động
+        path: "/books/:id",
         name: "book-detail",
         component: BookDetail,
         meta: { requiresAuth: true }

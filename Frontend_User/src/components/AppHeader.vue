@@ -1,8 +1,6 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth.store';
-
 const authStore = useAuthStore();
-
 function handleLogout() {
     if(confirm("Đăng xuất?")) {
         authStore.logout();

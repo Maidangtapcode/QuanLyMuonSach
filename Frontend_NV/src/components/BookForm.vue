@@ -75,20 +75,17 @@ async function handleFileUpload(event) {
 
     // Chuẩn bị Form Data để gửi
     const formData = new FormData();
-    formData.append('image', file); // Key 'image' phải khớp với backend
+    formData.append('image', file); 
 
     isUploading.value = true;
     try {
-        // Gọi API upload (Lưu ý: Content-Type sẽ tự động được set bởi axios khi gửi FormData)
-        // Chúng ta dùng authApiService để đảm bảo bảo mật, hoặc apiService thường cũng được
+        // Gọi API upload ảnh lên server
         const response = await authApiService.post('/upload', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
         });
-
-        // Thành công: Backend trả về { url: "..." }
-        // Gán URL đó vào trường hinhAnh của sách
+        // Lấy URL ảnh từ phản hồi và gán vào book.HinhAnh
         book.value.HinhAnh = response.data.url;
 
     } catch (err) {

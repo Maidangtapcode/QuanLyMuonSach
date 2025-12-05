@@ -23,7 +23,7 @@ async function handleDelete(id, name) {
         try {
             await authApiService.delete(`/nhaxuatbans/${id}`);
             alert("Đã xóa thành công!");
-            await fetchPublishers(); // Tải lại danh sách
+            await fetchPublishers(); 
         } catch (err) {
             alert("Không thể xóa thông tin NXB: " + (err.response?.data?.message || err.message));
         }

@@ -31,17 +31,13 @@ class MuonSachService {
     }
     async create(payload) {
         const muonSach = this.extractMuonSachData(payload);
-        
-        // Gán mặc định NgayTra là null (như cũ)
-        muonSach.NgayTra = muonSach.NgayTra || null; 
 
-        // === THÊM ĐOẠN NÀY ===
-        // Nếu tạo mới mà không gửi TrangThai lên, mặc định là 0 (Chờ duyệt)
+        // Gán mặc định NgayTra là null nếu không có
+        muonSach.NgayTra = muonSach.NgayTra || null; 
+        // Gán mặc định TrangThai là 0 (Chờ duyệt) nếu không có
         if (muonSach.TrangThai === undefined) {
             muonSach.TrangThai = 0;
         }
-        // ====================
-
         const result = await this.MuonSach.insertOne(muonSach);
         return await this.findById(result.insertedId);
     }
@@ -76,20 +72,14 @@ class MuonSachService {
         const filter = {
             _id: ObjectId.isValid(id) ? new ObjectId(String(id)) : null,
         };
-
-        // === SỬA ĐOẠN NÀY: Tự xây dựng object update thay vì dùng hàm extract ===
-        // Lý do: Để đảm bảo TrangThai và TienPhat chắc chắn được đưa vào
         const updateData = {};
-        
         if (payload.NgayTra !== undefined) updateData.NgayTra = payload.NgayTra;
         if (payload.TrangThai !== undefined) updateData.TrangThai = payload.TrangThai;
         if (payload.TienPhat !== undefined) updateData.TienPhat = payload.TienPhat;
         if (payload.MSNV !== undefined) updateData.MSNV = payload.MSNV;
-        // =======================================================================
-
         const result = await this.MuonSach.findOneAndUpdate(
             filter,
-            { $set: updateData }, // Update chính xác những trường này
+            { $set: updateData },
             { returnDocument: "after" }
         );
         return result;

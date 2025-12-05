@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { authApiService } from '@/services/api.service';
-
 const users = ref([]);
 const loading = ref(true);
 const error = ref(null);
-
 // Tải danh sách độc giả
 async function fetchUsers() {
     loading.value = true;
@@ -19,7 +17,6 @@ async function fetchUsers() {
         loading.value = false;
     }
 }
-
 // Xóa độc giả
 async function handleDelete(id, name) {
     if (confirm(`Bạn có chắc muốn xóa độc giả "${name}"?`)) {

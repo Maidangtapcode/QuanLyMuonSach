@@ -152,7 +152,7 @@ exports.updateProfile = async (req, res, next) => {
         // Lấy ID từ Token (do middleware verifyToken gắn vào req.user)
         const userId = req.user.userId; 
 
-        // Chỉ cho phép sửa một số trường nhất định (Tránh sửa MaDocGia hay Password ở đây)
+        // Chỉ cho phép sửa một số trường nhất định 
         const updateData = {
             HoLot: req.body.HoLot,
             Ten: req.body.Ten,
@@ -172,7 +172,6 @@ exports.updateProfile = async (req, res, next) => {
     }
 };
 
-// === 2. HÀM ĐỔI MẬT KHẨU ===
 exports.changePassword = async (req, res, next) => {
     if (!req.body?.oldPassword || !req.body?.newPassword) {
         return next(new ApiError(400, "Old password and new password are required"));
@@ -182,25 +181,23 @@ exports.changePassword = async (req, res, next) => {
         const docGiaService = new DocGiaService(MongoDB.client);
         const userId = req.user.userId;
 
-        // 1. Lấy thông tin độc giả từ DB (bao gồm mật khẩu cũ đã hash)
+        // Lấy thông tin độc giả từ DB
         const user = await docGiaService.findById(userId);
         if (!user) {
             return next(new ApiError(404, "User not found"));
         }
 
-        // 2. So sánh mật khẩu cũ người dùng nhập với mật khẩu trong DB
+        // So sánh mật khẩu cũ người dùng nhập với mật khẩu trong DB
         const passwordIsValid = await bcrypt.compare(req.body.oldPassword, user.Password);
         if (!passwordIsValid) {
             return next(new ApiError(401, "Mật khẩu cũ không chính xác!"));
         }
 
-        // 3. Hash mật khẩu mới
+        // Hash mật khẩu mới
         const salt = await bcrypt.genSalt(10);
         const hashedNewPassword = await bcrypt.hash(req.body.newPassword, salt);
 
-        // 4. Cập nhật vào DB
-        // (Lưu ý: Bạn phải đảm bảo hàm update của service nhận trường Password)
-        // Để chắc chắn, chúng ta gọi update trực tiếp với object password
+        // Cập nhật vào DB
         await docGiaService.update(userId, { Password: hashedNewPassword });
 
         return res.send({ message: "Đổi mật khẩu thành công!" });

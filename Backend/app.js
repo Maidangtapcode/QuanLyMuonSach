@@ -6,7 +6,7 @@ const nhaxuatbanRouter = require("./app/routes/nhaxuatban.route");
 const sachRouter = require("./app/routes/sach.route");
 const muonsachRouter = require("./app/routes/muonsach.route");
 const ApiError = require("./app/api-error");
-const uploadRouter = require("./app/routes/upload.route"); // Import mới
+const uploadRouter = require("./app/routes/upload.route"); 
 const app = express();
 app.use(cors());
 app.use(express.json());
